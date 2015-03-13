@@ -1,11 +1,13 @@
 import XMonad
+
 import XMonad.Actions.Plane
+import XMonad.Actions.GridSelect
+
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.UrgencyHook
-import XMonad.Hooks.ICCCMFocus
 
 import XMonad.Layout.Fullscreen
 import XMonad.Layout.NoBorders
@@ -43,24 +45,50 @@ myVisibleWSLeft     = "("
 myVisibleWSRight    = ")"
 myUrgentWSLeft      = "{"
 myUrgentWSRight     = "}"
---simple variables 
+--simple variables
 myTerminal      = "urxvt"
 myBorderWidth   = 1
---myWorkspaces = ["1:web", "2:term", "3:dev", "4:docs", "5:read", "6:aread", "7:media" , "8:dc", "9:admin"]
+myWorkspaces = ["web", "dev", "doc", "acd", "cal", "com", "med" , "dow", "adm"]
+myNormalBorderColor = "#7c7c7c"
+myFocusedBorderColor = "#ffb6b0"
 --Hooks
---myManageHook =  composeAll[
---                    
---                    ]
+myManageHook =  composeAll
+                [
+                    className =? "Firefox"      --> doShift "web",
+                    className =? "libprs500"    --> doShift "cal",
+                    className =? "Linuxdcpp"    --> doShift "dow"
+
+                    ]
 
 
-myKeys =  [
+myKeyBindings =  [
         ((mod4Mask , xK_z), spawn "xscreensaver-command -lock"),
         ((mod4Mask , xK_p), spawn "scrot \"%Y-%m-%d-%s_$wx$h.png\" -e \"mv $f ~/Pictures/Scrots/\""),
         ((0, xK_Print), spawn "scrot"),
+        ((mod4Mask, xK_r), spawn "rox"),
+        ((mod4Mask, xK_f), spawn "firefox"),
+        ((mod4Mask, xK_d), spawn "linuxdcpp"),
+        ((mod4Mask, xK_t), spawn "urxvt -e \"/usr/bin/tmux\""),
         ((0, 0x1008FF13), spawn "amixer -q set Master 10%+"),
         ((0, 0x1008FF11), spawn "amixer -q set Master 10%-"),
-        ((0, 0x1008FF12), spawn "amixer -q set Master toggle")
+        ((0, 0x1008FF12), spawn "amixer -q set Master toggle"),
+        ((mod4Mask, xK_s), spawnSelected defaultGSConfig [
+                                                "gnome-terminal",
+                                                "vlc",
+                                                "firefox",
+                                                "linuxdcpp",
+                                                "calibre",
+                                                "rox",
+                                                "mcomix",
+                                                "xscreensaver-command -lock",
+                                                "nautilus --no-desktop"]),
+        ((mod4Mask, xK_g), goToSelected defaultGSConfig)
         ]
+myKeys = myKeyBindings
+        ++
+        [((m .|.  mod4Mask, k), windows $ f i)
+        | (i, k) <- zip (myWorkspaces) [xK_1 .. xK_9]
+        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
 
 
 main = do
@@ -68,11 +96,11 @@ main = do
     xmonad $ defaultConfig
         {
         --Hooks and Layouts
-        manageHook = manageDocks <+> manageHook defaultConfig,
+        manageHook = manageDocks <+> myManageHook,
         layoutHook = avoidStruts  $  layoutHook defaultConfig,
 
         --Xmobar
-        logHook = takeTopFocus <+> dynamicLogWithPP xmobarPP{
+        logHook = dynamicLogWithPP xmobarPP{
             ppOutput    = hPutStrLn xmproc,
             ppTitle     = xmobarColor myTitleColor "" . shorten myTitleLength,
             ppCurrent   = xmobarColor myCurrentWSColor "" . wrap myCurrentWSLeft myCurrentWSRight,
@@ -82,6 +110,10 @@ main = do
 
         --Simple Variables
         terminal = myTerminal,
-        borderWidth = myBorderWidth
+        borderWidth = myBorderWidth,
+        workspaces  = myWorkspaces,
+        --colors
+        normalBorderColor   = myNormalBorderColor,
+        focusedBorderColor  = myFocusedBorderColor
         --Bindings
         }`additionalKeys` myKeys
