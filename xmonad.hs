@@ -1,4 +1,4 @@
-import XMonad
+import XMonad-- {{{
 
 import XMonad.Actions.Plane
 import XMonad.Actions.GridSelect
@@ -23,18 +23,18 @@ import XMonad.Layout.PerWorkspace (onWorkspace)
 
 import XMonad.Util.Run
 import XMonad.Util.EZConfig
-
+import XMonad.Util.NamedWindows
 import System.IO
 import System.Exit
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
-
+import Data.List-- }}}
 
 
 {-Xmobar Configuration Vaiables
  - -}
-myTitleColor        = "#eeeeee"
+myTitleColor        = "#eeeeee"-- {{{
 myTitleLength       = 80
 myCurrentWSColor    = "#e6744c"
 myVisibleWSColor    = "#c185a7"
@@ -50,18 +50,22 @@ myTerminal      = "urxvt"
 myBorderWidth   = 1
 myWorkspaces = ["web", "dev", "doc", "acd", "cal", "com", "med" , "dow", "adm"]
 myNormalBorderColor = "#7c7c7c"
-myFocusedBorderColor = "#ffb6b0"
+myFocusedBorderColor = "#ffb6b0"-- }}}
 --Hooks
-myManageHook =  composeAll
-                [
-                    className =? "Firefox"      --> doShift "web",
-                    className =? "libprs500"    --> doShift "cal",
-                    className =? "Linuxdcpp"    --> doShift "dow"
+myManageHook    = composeAll . concat $ ---{{{
+                    [[className =? "Firefox"      --> doShift "web"],
+                    [className =? "libprs500"    --> doShift "cal"],
+                    [className =? "Linuxdcpp"    --> doShift "dow"],
+                    [title     =? t --> doFloat | t<-myTitleFloats],
+                    [className  =? c --> doFloat | c<-myClassFloats]]
+                    where
+                    myTitleFloats   = ["Transferring", "Dialog"]
+                    myClassFloats   = ["Pinentry", "Yad"]-- }}}
 
-                    ]
-
-
-myKeyBindings =  [
+spawnSelected' :: [(String, String)] -> X()
+spawnSelected' lst = gridselect conf lst >>= flip whenJust spawn
+            where conf = defaultGSConfig
+myKeyBindings =  [-- {{{
         ((mod4Mask , xK_z), spawn "xscreensaver-command -lock"),
         ((mod4Mask , xK_p), spawn "scrot \"%Y-%m-%d-%s_$wx$h.png\" -e \"mv $f ~/Pictures/Scrots/\""),
         ((0, xK_Print), spawn "scrot"),
@@ -72,28 +76,40 @@ myKeyBindings =  [
         ((0, 0x1008FF13), spawn "amixer -q set Master 10%+"),
         ((0, 0x1008FF11), spawn "amixer -q set Master 10%-"),
         ((0, 0x1008FF12), spawn "amixer -q set Master toggle"),
-        ((mod4Mask, xK_s), spawnSelected defaultGSConfig [
-                                                "gnome-terminal",
-                                                "vlc",
-                                                "firefox",
-                                                "linuxdcpp",
-                                                "calibre",
-                                                "rox",
-                                                "mcomix",
-                                                "xscreensaver-command -lock",
-                                                "nautilus --no-desktop"]),
+        ((mod4Mask, xK_s), spawnSelected' [
+                                                ("Gnome-Terminal", "gnome-terminal"),
+                                                ("VLC", "vlc"),
+                                                ("Firefox", "firefox"),
+                                                ("DC++", "linuxdcpp"),
+                                                ("Calibre", "calibre"),
+                                                ("ROX", "rox"),
+                                                ("MComix", "mcomix"),
+                                                ("Screen Lock", "xscreensaver-command -lock"),
+                                                ("Nautilus", "nautilus --no-desktop"),
+                                                ("CMUS", "urxvt -e \"/usr/bin/cmus\""),
+                                                ("Audacious", "audacious"),
+                                                ("Deluge", "deluge"),
+                                                ("HTOP", "urxvt -e \"/usr/bin/htop\"") ]),
         ((mod4Mask, xK_g), goToSelected defaultGSConfig)
-        ]
-myKeys = myKeyBindings
+        ]-- }}}
+myKeys = myKeyBindings-- {{{
         ++
         [((m .|.  mod4Mask, k), windows $ f i)
         | (i, k) <- zip (myWorkspaces) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
+        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]-- }}}
 
 
-main = do
+data LibNotifyUrgencyHook = LibNotifyUrgencyHook deriving (Read, Show)
+
+instance UrgencyHook LibNotifyUrgencyHook where-- {{{
+    urgencyHook LibNotifyUrgencyHook w = do
+            name     <- getName w
+            Just idx <- fmap (W.findTag w) $ gets windowset
+            safeSpawn "notify-send" [show name, "workspace " ++ idx]-- }}}
+
+main = do-- {{{
     xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
-    xmonad $ defaultConfig
+    xmonad $ withUrgencyHook LibNotifyUrgencyHook $ defaultConfig
         {
         --Hooks and Layouts
         manageHook = manageDocks <+> myManageHook,
@@ -116,4 +132,4 @@ main = do
         normalBorderColor   = myNormalBorderColor,
         focusedBorderColor  = myFocusedBorderColor
         --Bindings
-        }`additionalKeys` myKeys
+        }`additionalKeys` myKeys-- }}}
