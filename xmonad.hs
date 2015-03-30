@@ -76,6 +76,9 @@ myKeyBindings =  [-- {{{
         ((0, 0x1008FF13), spawn "amixer -q set Master 10%+"),
         ((0, 0x1008FF11), spawn "amixer -q set Master 10%-"),
         ((0, 0x1008FF12), spawn "amixer -q set Master toggle"),
+        ((0, 0x1008FF17), spawn "audtool playlist-advance"),
+        ((0, 0x1008FF16), spawn "audtool playlist-reverse"),
+        ((0, 0x1008FF14), spawn "audtool playback-playpause"),
         ((mod4Mask, xK_s), spawnSelected' [
                                                 ("Gnome-Terminal", "gnome-terminal"),
                                                 ("VLC", "vlc"),
