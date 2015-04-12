@@ -8,6 +8,7 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.SetWMName
 import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.EwmhDesktops
 
 import XMonad.Layout.Fullscreen
 import XMonad.Layout.NoBorders
@@ -48,7 +49,7 @@ myUrgentWSRight     = "}"
 --simple variables
 myTerminal      = "urxvt"
 myBorderWidth   = 1
-myWorkspaces = ["web", "dev", "doc", "acd", "cal", "com", "med" , "dow", "adm"]
+myWorkspaces = ["web", "dev", "doc", "acd", "cal", "com", "med" , "dow", "mus"]
 myNormalBorderColor = "#7c7c7c"
 myFocusedBorderColor = "#ffb6b0"-- }}}
 --Hooks
@@ -56,11 +57,15 @@ myManageHook    = composeAll . concat $ ---{{{
                     [[className =? "Firefox"      --> doShift "web"],
                     [className =? "libprs500"    --> doShift "cal"],
                     [className =? "Linuxdcpp"    --> doShift "dow"],
+                    [className =? "MPlayer"    --> doShift "med"],
+                    [className =? "Audacious"    --> doShift "mus"],
+                    [className =? "MComix"    --> doShift "com"],
+                    [className =? "Deluge"    --> doShift "dow"],
                     [title     =? t --> doFloat | t<-myTitleFloats],
                     [className  =? c --> doFloat | c<-myClassFloats]]
                     where
                     myTitleFloats   = ["Transferring", "Dialog"]
-                    myClassFloats   = ["Pinentry", "Yad"]-- }}}
+                    myClassFloats   = ["Pinentry", "Yad", "Audacious", "XVroot", "XTerm"]-- }}}
 
 spawnSelected' :: [(String, String)] -> X()
 spawnSelected' lst = gridselect conf lst >>= flip whenJust spawn
@@ -112,12 +117,11 @@ instance UrgencyHook LibNotifyUrgencyHook where-- {{{
 
 main = do-- {{{
     xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
-    xmonad $ withUrgencyHook LibNotifyUrgencyHook $ defaultConfig
+    xmonad $ withUrgencyHook LibNotifyUrgencyHook $ ewmh defaultConfig
         {
         --Hooks and Layouts
         manageHook = manageDocks <+> myManageHook,
         layoutHook = avoidStruts  $  layoutHook defaultConfig,
-
         --Xmobar
         logHook = dynamicLogWithPP xmobarPP{
             ppOutput    = hPutStrLn xmproc,
