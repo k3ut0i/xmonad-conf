@@ -23,5 +23,7 @@ executable xmonad-conf
                         ,xmonad
                         ,xmonad-contrib
                         ,containers
+
+  ghc-options:    force-reinstalls
   -- hs-source-dirs:
   default-language:    Haskell2010
