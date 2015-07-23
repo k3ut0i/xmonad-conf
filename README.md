@@ -1,6 +1,6 @@
 xmonad configuration
 ====================
-[![Build Status](https://circleci.com/gh/:k3ut0i/:xmonad-conf.svg?style=shield&circle-token=:circle-token)]
+[![Build Status](https://circleci.com/gh/k3ut0i/xmonad-conf.svg?style=shield&circle-token=:circle-token)]
 Configuration files for xmonad with xmobar
 Changed according to need
 default keys have mod1Mask
