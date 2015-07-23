@@ -12,7 +12,7 @@ Config {
 font = "xft:Dejavu Sans Mono:pixelsize=10.5",
 bgColor = "black",
 fgColor = "grey",
-position = TopW L 95,
+position = TopW L 90,
 commands = [
 Run Cpu [
 "-H","50",

@@ -1,6 +1,5 @@
 import XMonad-- {{{
 
-import XMonad.Actions.Plane
 import XMonad.Actions.GridSelect
 
 import XMonad.Hooks.DynamicLog
@@ -59,6 +58,7 @@ myManageHook    = composeAll . concat $ ---{{{
                     [className =? "Linuxdcpp"    --> doShift "dow"],
                     [className =? "MPlayer"    --> doShift "med"],
                     [className =? "Audacious"    --> doShift "mus"],
+                    [className =? "Rhythmbox"    --> doShift "mus"],
                     [className =? "MComix"    --> doShift "com"],
                     [className =? "Deluge"    --> doShift "dow"],
                     [title     =? t --> doFloat | t<-myTitleFloats],
@@ -97,14 +97,22 @@ myKeyBindings =  [-- {{{
                                                 ("CMUS", "urxvt -e \"/usr/bin/cmus\""),
                                                 ("Audacious", "audacious"),
                                                 ("Deluge", "deluge"),
-                                                ("HTOP", "urxvt -e \"/usr/bin/htop\"") ]),
+                                                ("HTOP", "urxvt -e \"/usr/bin/htop\""),
+                                                ("Tome", "torify tome4"),
+                                                ("NAO", "urxvt -e \"/usr/bin/ssh nethack@alt.org\""),
+                                                ("Matlab", "matlab"),
+                                                ("RhythmBox", "rhythmbox"),
+                                                ("TexMaker", "texmaker"),
+                                                ("VirtualBox","virtualbox"),
+                                                ("Clementine", "clementine")
+                                                ]),
         ((mod4Mask, xK_g), goToSelected defaultGSConfig)
         ]-- }}}
 myKeys = myKeyBindings-- {{{
         ++
         [((m .|.  mod4Mask, k), windows $ f i)
         | (i, k) <- zip (myWorkspaces) [xK_1 .. xK_9]
-        , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]-- }}}
+        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]-- }}}
 
 
 data LibNotifyUrgencyHook = LibNotifyUrgencyHook deriving (Read, Show)
@@ -122,6 +130,7 @@ main = do-- {{{
         --Hooks and Layouts
         manageHook = manageDocks <+> myManageHook,
         layoutHook = avoidStruts  $  layoutHook defaultConfig,
+        startupHook = setWMName "LG3D",
         --Xmobar
         logHook = dynamicLogWithPP xmobarPP{
             ppOutput    = hPutStrLn xmproc,
@@ -129,7 +138,7 @@ main = do-- {{{
             ppCurrent   = xmobarColor myCurrentWSColor "" . wrap myCurrentWSLeft myCurrentWSRight,
             ppVisible   = xmobarColor myVisibleWSColor "" . wrap myVisibleWSLeft myVisibleWSRight,
             ppUrgent    = xmobarColor myUrgentWSColor "" . wrap myUrgentWSLeft myUrgentWSRight
-        },
+        } >> setWMName "LG3D",
 
         --Simple Variables
         terminal = myTerminal,
