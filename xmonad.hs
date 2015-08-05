@@ -64,14 +64,14 @@ myManageHook    = composeAll . concat $ ---{{{
                     [title     =? t --> doFloat | t<-myTitleFloats],
                     [className  =? c --> doFloat | c<-myClassFloats]]
                     where
-                    myTitleFloats   = ["Transferring", "Dialog"]
+                    myTitleFloats   = ["Transferring", "Dialog", "Mailcheck"]
                     myClassFloats   = ["Pinentry", "Yad", "Audacious", "XVroot", "XTerm"]-- }}}
 
 spawnSelected' :: [(String, String)] -> X()
 spawnSelected' lst = gridselect conf lst >>= flip whenJust spawn
             where conf = defaultGSConfig
 myKeyBindings =  [-- {{{
-        ((mod4Mask , xK_z), spawn "xscreensaver-command -lock"),
+        ((mod4Mask , xK_z), spawn "xtrlock"),
         ((mod4Mask , xK_p), spawn "scrot \"%Y-%m-%d-%s_$wx$h.png\" -e \"mv $f ~/Pictures/Scrots/\""),
         ((0, xK_Print), spawn "scrot"),
         ((mod4Mask, xK_r), spawn "rox"),
