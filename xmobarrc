@@ -15,6 +15,7 @@ fgColor = "grey",
 position = TopW L 90,
 commands = [
 Run Cpu [
+"-t", "<fc=cyan>C</fc>[<total>]",
 "-H","50",
 "-L", "7",
 "--high","red",
@@ -22,19 +23,27 @@ Run Cpu [
 "-l", "green"
 ] 10,
 Run Memory [
-"-t","Mem: <usedratio>%",
+"-t","<fc=cyan>M</fc>[<usedratio>]",
 "-H", "85",
 "-L", "30",
 "-h", "red",
 "-n", "orange",
 "-l", "green"
 ] 10,
-Run Date "%a %b %_d %l:%M" "date" 10,
+Run DynNetwork [
+"--template" , "<fc=cyan><dev></fc> [<tx>|<rx>]kBps"
+                , "--Low"      , "1000"       -- units: B/s
+                , "--High"     , "5000"       -- units: B/s
+                , "--low"      , "darkgreen"
+                , "--normal"   , "darkorange"
+                , "--high"     , "darkred"] 10,
+Run Date "%a %_d-%m <fc=green>%l:%M</fc>" "date" 10,
+Run Locks,
 Run Battery [
-"-t", "<acstatus>: <left>%",
+"-t", "<fc=cyan><acstatus></fc>[<left>]",
 "--",
 "-H", "90",
-"-L", "10",
+"-L", "15",
 "-O", "AC",
 "-o", "Bat",
 "-h", "green",
@@ -45,5 +54,5 @@ Run StdinReader
 ],
 sepChar = "%",
 alignSep = "}{",
-template = "%StdinReader% }{ %battery% | %cpu% | %memory% | Vol: %myvolume% |<fc=#e6744c>%date%</fc>"
+template = "%StdinReader% }{ %dynnetwork% %locks% %battery% %cpu% %memory% <fc=cyan>V</fc>%myvolume% [<fc=#e6744c>%date%</fc>]"
 }

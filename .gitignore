@@ -4,3 +4,6 @@ xmonad.o
 xmonad.hi
 xmonad
 *.swp
+*\~
+.dir-locals.el
+log.txt

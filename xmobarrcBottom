@@ -1,0 +1,28 @@
+
+Config {
+font = "xft:Dejavu Sans Mono:pixelsize=10.5",
+bgColor = "black",
+fgColor = "grey",
+position = BottomW C 100,
+sepChar = "%",
+alignSep = "}{",
+template = "%mpd% }{ %top% %topmem%"
+commands = [
+Run MPD [
+"-t",
+"<fc=#999999><composer></fc> <fc=#999999><album></fc> <fc=white><title></fc><fc=black,cyan>{<statei>}</fc>[<flags>]",
+"-M", "20", "-m", "20", "-a", "r", 
+"--", "-P", ">>", "-Z", "|", "-S", "><"] 10,
+Run TopProc [
+"-t",
+"[<no>] [<both1> <both2> <both3>]",
+"-M", "10", "-m", "10"
+] 10,
+Run TopMem [
+"-t",
+"[<both1> <both2> <both3>]",
+"-M", "10", "-m", "10"
+] 10
+
+]
+}

@@ -1,4 +1,4 @@
-import XMonad-- {{{
+import XMonad
 
 import XMonad.Actions.GridSelect
 
@@ -19,7 +19,7 @@ import XMonad.Layout.IM
 import XMonad.Layout.ResizableTile
 import XMonad.Layout.Circle
 import XMonad.Layout.PerWorkspace (onWorkspace)
-
+import XMonad.Layout.Gaps
 
 import XMonad.Util.Run
 import XMonad.Util.EZConfig
@@ -29,12 +29,14 @@ import System.Exit
 
 import qualified XMonad.StackSet as W
 import qualified Data.Map as M
-import Data.List-- }}}
+import Data.List
 
 
-{-Xmobar Configuration Vaiables
- - -}
-myTitleColor        = "#eeeeee"-- {{{
+myTitleColor, myCurrentWSColor, myVisibleWSColor, myUrgentWSColor :: String
+myCurrentWSLeft, myCurrentWSRight, myVisibleWSLeft, myVisibleWSRight, myUrgentWSLeft, myUrgentWSRight :: String
+myTitleLength :: Int
+
+myTitleColor        = "#ffffff"
 myTitleLength       = 80
 myCurrentWSColor    = "#e6744c"
 myVisibleWSColor    = "#c185a7"
@@ -45,16 +47,18 @@ myVisibleWSLeft     = "("
 myVisibleWSRight    = ")"
 myUrgentWSLeft      = "{"
 myUrgentWSRight     = "}"
---simple variables
+
 myTerminal      = "urxvt"
 myBorderWidth   = 1
 myWorkspaces = ["web", "dev", "doc", "acd", "cal", "com", "med" , "dow", "mus"]
 myNormalBorderColor = "#7c7c7c"
-myFocusedBorderColor = "#ffb6b0"-- }}}
---Hooks
-myManageHook    = composeAll . concat $ ---{{{
+myFocusedBorderColor = "#ffb6b0"
+
+
+myManageHook    = composeAll . concat $
                     [[className =? "Firefox"      --> doShift "web"],
                     [className =? "libprs500"    --> doShift "cal"],
+                    [className =? "FBReader"    --> doShift "cal"],
                     [className =? "Linuxdcpp"    --> doShift "dow"],
                     [className =? "MPlayer"    --> doShift "med"],
                     [className =? "Audacious"    --> doShift "mus"],
@@ -65,25 +69,23 @@ myManageHook    = composeAll . concat $ ---{{{
                     [className  =? c --> doFloat | c<-myClassFloats]]
                     where
                     myTitleFloats   = ["Transferring", "Dialog", "Mailcheck"]
-                    myClassFloats   = ["Pinentry", "Yad", "Audacious", "XVroot", "XTerm"]-- }}}
+                    myClassFloats   = ["Pinentry", "Yad", "Audacious", "XVroot", "XTerm", "Conky", "Tilda"]
+
 
 spawnSelected' :: [(String, String)] -> X()
-spawnSelected' lst = gridselect conf lst >>= flip whenJust spawn
-            where conf = defaultGSConfig
-myKeyBindings =  [-- {{{
+spawnSelected' lst = gridselect def lst >>= flip whenJust spawn
+
+myKeyBindings :: [((KeyMask,KeySym), X())]
+myKeyBindings =  [
         ((mod4Mask , xK_z), spawn "xtrlock"),
-        ((mod4Mask , xK_p), spawn "scrot \"%Y-%m-%d-%s_$wx$h.png\" -e \"mv $f ~/Pictures/Scrots/\""),
         ((0, xK_Print), spawn "scrot"),
-        ((mod4Mask, xK_r), spawn "rox"),
-        ((mod4Mask, xK_f), spawn "firefox"),
-        ((mod4Mask, xK_d), spawn "linuxdcpp"),
-        ((mod4Mask, xK_t), spawn "urxvt -e \"/usr/bin/tmux\""),
         ((0, 0x1008FF13), spawn "amixer -q set Master 10%+"),
         ((0, 0x1008FF11), spawn "amixer -q set Master 10%-"),
         ((0, 0x1008FF12), spawn "amixer -q set Master toggle"),
-        ((0, 0x1008FF17), spawn "audtool playlist-advance"),
-        ((0, 0x1008FF16), spawn "audtool playlist-reverse"),
-        ((0, 0x1008FF14), spawn "audtool playback-playpause"),
+        ((0, 0x1008FF17), spawn "mpc next"),
+        ((0, 0x1008FF16), spawn "mpc prev "),
+        ((0, 0x1008FF14), spawn "mpc toggle"),
+        ((mod4Mask, xK_d), sendMessage ToggleStruts),
         ((mod4Mask, xK_s), spawnSelected' [
                                                 ("Gnome-Terminal", "gnome-terminal"),
                                                 ("VLC", "vlc"),
@@ -92,7 +94,7 @@ myKeyBindings =  [-- {{{
                                                 ("Calibre", "calibre"),
                                                 ("ROX", "rox"),
                                                 ("MComix", "mcomix"),
-                                                ("Screen Lock", "xscreensaver-command -lock"),
+                                                ("XScreenLock", "xscreensaver-command -lock"),
                                                 ("Nautilus", "nautilus --no-desktop"),
                                                 ("CMUS", "urxvt -e \"/usr/bin/cmus\""),
                                                 ("Audacious", "audacious"),
@@ -104,34 +106,40 @@ myKeyBindings =  [-- {{{
                                                 ("RhythmBox", "rhythmbox"),
                                                 ("TexMaker", "texmaker"),
                                                 ("VirtualBox","virtualbox"),
-                                                ("Clementine", "clementine")
+                                                ("Clementine", "clementine"),
+                                                ("EmacsX", "emacs")
                                                 ]),
-        ((mod4Mask, xK_g), goToSelected defaultGSConfig)
-        ]-- }}}
-myKeys = myKeyBindings-- {{{
+        ((mod4Mask, xK_g), goToSelected def)
+        ]
+
+myKeys :: [((KeyMask, KeySym), X())]                 
+myKeys = myKeyBindings
         ++
-        [((m .|.  mod4Mask, k), windows $ f i)
-        | (i, k) <- zip (myWorkspaces) [xK_1 .. xK_9]
-        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]-- }}}
+        [((m .|.  mod1Mask, k), windows $ f i)
+        | (i, k) <- zip myWorkspaces [xK_1 .. xK_9]
+        , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 
 data LibNotifyUrgencyHook = LibNotifyUrgencyHook deriving (Read, Show)
 
-instance UrgencyHook LibNotifyUrgencyHook where-- {{{
+instance UrgencyHook LibNotifyUrgencyHook where
     urgencyHook LibNotifyUrgencyHook w = do
             name     <- getName w
-            Just idx <- fmap (W.findTag w) $ gets windowset
-            safeSpawn "notify-send" [show name, "workspace " ++ idx]-- }}}
+            Just idx <- W.findTag w <$> gets windowset
+            safeSpawn "notify-send" [show name, "workspace " ++ idx]
 
-main = do-- {{{
-    xmproc <- spawnPipe "xmobar ~/.xmonad/xmobarrc"
-    xmonad $ withUrgencyHook LibNotifyUrgencyHook $ ewmh defaultConfig
+main :: IO()
+main = do
+    xmproc <- spawnPipe "~/.cabal/bin/xmobar ~/.xmonad/xmobarrc"
+    spawn "~/.cabal/bin/xmobar ~/.xmonad/xmobarrcBottom"
+ 
+    xmonad $ withUrgencyHook LibNotifyUrgencyHook $ ewmh def
         {
-        --Hooks and Layouts
+
         manageHook = manageDocks <+> myManageHook,
-        layoutHook = avoidStruts  $  layoutHook defaultConfig,
+        layoutHook = avoidStruts  $  layoutHook def,
         startupHook = setWMName "LG3D",
-        --Xmobar
+--        handleEventHook = 
         logHook = dynamicLogWithPP xmobarPP{
             ppOutput    = hPutStrLn xmproc,
             ppTitle     = xmobarColor myTitleColor "" . shorten myTitleLength,
@@ -140,12 +148,13 @@ main = do-- {{{
             ppUrgent    = xmobarColor myUrgentWSColor "" . wrap myUrgentWSLeft myUrgentWSRight
         } >> setWMName "LG3D",
 
-        --Simple Variables
+
         terminal = myTerminal,
         borderWidth = myBorderWidth,
         workspaces  = myWorkspaces,
-        --colors
+        modMask = mod4Mask,
+
         normalBorderColor   = myNormalBorderColor,
         focusedBorderColor  = myFocusedBorderColor
-        --Bindings
-        }`additionalKeys` myKeys-- }}}
+
+        }`additionalKeys` myKeys
