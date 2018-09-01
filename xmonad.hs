@@ -20,6 +20,7 @@ import XMonad.Layout.ResizableTile
 import XMonad.Layout.Circle
 import XMonad.Layout.PerWorkspace (onWorkspace)
 import XMonad.Layout.Gaps
+import XMonad.Layout.Accordion
 
 import XMonad.Util.Run
 import XMonad.Util.EZConfig
@@ -65,6 +66,7 @@ myManageHook    = composeAll . concat $
                     [className =? "Rhythmbox"    --> doShift "mus"],
                     [className =? "MComix"    --> doShift "com"],
                     [className =? "Deluge"    --> doShift "dow"],
+                    [className =? "Emacs" --> doShift "dev"],
                     [title     =? t --> doFloat | t<-myTitleFloats],
                     [className  =? c --> doFloat | c<-myClassFloats]]
                     where
@@ -82,6 +84,8 @@ myKeyBindings =  [
         ((0, 0x1008FF13), spawn "amixer -q set Master 10%+"),
         ((0, 0x1008FF11), spawn "amixer -q set Master 10%-"),
         ((0, 0x1008FF12), spawn "amixer -q set Master toggle"),
+        ((0, 0x1008FF02), spawn "xbacklight -inc 10"),
+        ((0, 0x1008FF03), spawn "xbacklight -dec 10"),
         ((0, 0x1008FF17), spawn "mpc next"),
         ((0, 0x1008FF16), spawn "mpc prev "),
         ((0, 0x1008FF14), spawn "mpc toggle"),
@@ -115,7 +119,7 @@ myKeyBindings =  [
 myKeys :: [((KeyMask, KeySym), X())]                 
 myKeys = myKeyBindings
         ++
-        [((m .|.  mod1Mask, k), windows $ f i)
+        [((m .|.  mod4Mask, k), windows $ f i)
         | (i, k) <- zip myWorkspaces [xK_1 .. xK_9]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
 
@@ -128,18 +132,24 @@ instance UrgencyHook LibNotifyUrgencyHook where
             Just idx <- W.findTag w <$> gets windowset
             safeSpawn "notify-send" [show name, "workspace " ++ idx]
 
+myLayoutHook = noBorders $ myFull ||| myTabs ||| myTall
+               where
+                 myTabs = tabbed shrinkText def
+                 myTall = Tall 1 (3/100) (1/2)
+                 myFull = Full
 main :: IO()
 main = do
-    xmproc <- spawnPipe "~/.cabal/bin/xmobar ~/.xmonad/xmobarrc"
-    spawn "~/.cabal/bin/xmobar ~/.xmonad/xmobarrcBottom"
+    xmproc <- spawnPipe "~/.local/bin/xmobar ~/.xmonad/xmobarrc"
+--    spawn "~/.local/bin/xmobar ~/.xmonad/xmobarrcBottom"
  
     xmonad $ withUrgencyHook LibNotifyUrgencyHook $ ewmh def
         {
 
         manageHook = manageDocks <+> myManageHook,
-        layoutHook = avoidStruts  $  layoutHook def,
+        layoutHook = avoidStruts  $  myLayoutHook,
         startupHook = setWMName "LG3D",
---        handleEventHook = 
+        handleEventHook = mconcat [ docksEventHook
+                                  , handleEventHook def ] ,
         logHook = dynamicLogWithPP xmobarPP{
             ppOutput    = hPutStrLn xmproc,
             ppTitle     = xmobarColor myTitleColor "" . shorten myTitleLength,
