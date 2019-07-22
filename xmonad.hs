@@ -58,6 +58,7 @@ myFocusedBorderColor = "#ffb6b0"
 
 myManageHook    = composeAll . concat $
                     [[className =? "Firefox"      --> doShift "web"],
+                     [className =? "firefox" --> doShift "web"],
                     [className =? "libprs500"    --> doShift "cal"],
                     [className =? "FBReader"    --> doShift "cal"],
                     [className =? "Linuxdcpp"    --> doShift "dow"],
@@ -111,7 +112,8 @@ myKeyBindings =  [
                                                 ("TexMaker", "texmaker"),
                                                 ("VirtualBox","virtualbox"),
                                                 ("Clementine", "clementine"),
-                                                ("EmacsX", "emacs")
+                                                ("EmacsX", "emacs"),
+                                                ("EmacsClient", "emacsclient -c")
                                                 ]),
         ((mod4Mask, xK_g), goToSelected def)
         ]
